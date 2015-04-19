@@ -1,0 +1,69 @@
+﻿body {
+}
+
+table
+{
+    cursor: pointer; 
+    margin: 0;
+    padding: 0;  
+}
+table td
+{
+    background-color: #fffafa;
+    border: solid 1px #000;
+    font-size: 26px;
+    padding: 5px 0 5px 0;
+    text-align: center;
+    width: 2em;
+}
+
+ul 
+{
+    list-style: none;
+    list-style-position: outside;
+    margin: 0;
+    padding: 0;
+}
+
+ul li 
+{
+    margin: 0;
+    padding: 0;
+}
+
+label
+{
+    
+}
+
+#wrapper 
+{
+    margin: 100px auto 0 auto;
+    width: 600px;
+}
+
+#settings
+{
+    margin-top: 40px;
+}
+
+#debugInfo
+{
+    font-size: 12px;
+}
+
+#txtDepth
+{
+    margin-left: 20px;
+    text-align: center;
+    width: 40px;
+}
+
+@media only screen and (max-width: 479px) 
+{
+    #wrapper 
+    {
+        margin: 20px auto 0 auto;
+        width: 470px;
+    }            
+}

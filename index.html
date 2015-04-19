@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+    <head>
+        <title>Index</title>
+        <link type="text/css" rel="stylesheet" href="css/style-v001.css" />
+    </head>
+    <body>
+        <div id="wrapper">
+            <table id="tttTable" cellspacing="0">
+                <tr>
+                    <td id="td00">&nbsp;
+                    </td>
+                    <td id="td10">
+                    </td>
+                    <td id="td20">
+                    </td>
+                </tr>
+                <tr>
+                    <td id="td01">&nbsp;
+                    </td>
+                    <td id="td11">
+                    </td>
+                    <td id="td21">
+                    </td>
+                </tr>
+                <tr>
+                    <td id="td02">&nbsp;
+                    </td>
+                    <td id="td12">
+                    </td>
+                    <td id="td22">
+                    </td>
+                </tr>
+            </table>
+            <hr />
+            <div id="settings">
+                <ul>
+                    <li><label for="txtDepth">AI difficulty level</label><input type="text" id="txtDepth" value="10"></li>
+                    <li><a id="clearBoard" href="javascript:;">Clear board</a></li>                    
+                </ul>
+            </div>
+            <p id="debugInfo">...</p>
+        </div>
+        <script src="js/index-v001.js" type="text/javascript"></script>
+        <script type="text/javascript">                 
+            //####################################################################
+            //                      GLOBAL VARS
+            //####################################################################
+            var arrBoard = [],                
+            b = new Board(arrBoard),
+                gameOver = false;
+            
+            
+            //####################################################################
+            //                      DEBUG CONSOLE
+            //####################################################################
+            var outputLog = {
+                cons : document.getElementById('debugInfo'), // console P element
+                clear : function() {
+                    this.cons.innerHTML = "";
+                },
+                print : function(s) {
+                    if( this.cons ) {                    
+                        //this.cons.innerHTML = s;
+                        this.cons.innerHTML = "- " + s + "<br/>" + this.cons.innerHTML;
+                    }
+                }
+            }; // outputLog
+        
+            //####################################################################
+            //                      MAIN TTT controller
+            //####################################################################        
+            var TTTController = {
+                
+                // output on screen
+                printBoard : function(arr) {
+                    var t = "";
+                    for( var y=0; y<3; y++ ) {
+                        for( var x=0; x<3; x++ ) {
+                            t = arr[x][y] == b.emptySpot ? "&nbsp;" : arr[x][y];
+                            
+                            document.getElementById('td'+x+''+y).innerHTML = t;
+                        }
+                    }
+                },
+                
+                // reset everything to default
+                initalize: function() {
+                    //alert('init');
+                    b.clear();
+                    changeAiDepth();
+                    gameOver = false;
+                    outputLog.clear();
+                    
+                    this.printBoard(b.arr);
+                    
+                    // clear back color
+                    var el = null;
+                    
+                    for( var x=0; x<3; x++ ){
+                        for( var y=0; y<3; y++ ){
+                            el = document.getElementById('td'+x+''+y);
+                            if( el ) {
+                                el.style.backgroundColor = "#fffafa";
+                            } else {
+                                alert('Error: cant set TD backgroundColor.');
+                            }
+                        }
+                    }
+                },                
+                
+                // hilite winning squares
+                hilite: function() {
+                    var col = "#dbecce"; // green
+                    var x, y, td;
+                                    
+                    // horiz check
+                    for( y = 0; y < 3; y++ ) {
+                        if( b.arr[0][y] != b.emptySpot && b.arr[0][y] == b.arr[1][y] &&  b.arr[0][y] == b.arr[2][y]) {
+                            for( td = 0; td < 3; td++) {
+                                document.getElementById('td'+td+''+y).style.backgroundColor = col;
+                            }
+                        }
+                    }               
+                    
+                    // vert check
+                    for(  x = 0; x < 3; x++ ) {
+                        if( b.arr[x][0] != b.emptySpot && b.arr[x][0] == b.arr[x][1] &&  b.arr[x][0] == b.arr[x][2]) {
+                            for( td = 0; td < 3; td++) {
+                                document.getElementById('td'+x+''+td).style.backgroundColor = col;
+                            }
+                        }
+                    }
+                    
+                    //diag 1
+                    if( b.arr[0][0] == b.arr[1][1] &&  b.arr[0][0] == b.arr[2][2]) {
+                        //alert('diag 1');
+                        for( y=0,x=0; y<3, x<3; y++,x++) {                             
+                            document.getElementById('td'+x+''+y).style.backgroundColor = col;
+                        }
+                    }
+                    
+                    //diag 2
+                    if( b.arr[2][0] == b.arr[1][1] &&  b.arr[2][0] == b.arr[0][2]) {
+                        //alert('diag 2');
+                        for( y=0,x=2; y<3, x>=0; y++,x--) { 
+                            document.getElementById('td'+x+''+y).style.backgroundColor = col;
+                        }
+                    }
+                }
+            }; // TTTController
+                        
+            TTTController.initalize();
+        
+            //####################################################################
+            //              main function when user clicks on table
+            //####################################################################            
+            var clickFunction = function(e) {
+                if( gameOver ) { 
+                    TTTController.initalize();
+                    return; 
+                }
+            
+                outputLog.print("");
+                
+                //get element that was clicked
+                var theTarget = e.target;
+                if( theTarget && ( e.target.nodeType == 3 || e.target.nodeType == 4 ) ) {
+                    theTarget = theTarget.parentNode;
+                }                
+                //outputLog.print("Clicked on "+theTarget.id);
+                
+                if( theTarget.innerHTML == b.player ||  theTarget.innerHTML == b.ai ) { return; }
+                
+                //update board with user click
+                var xPos = parseInt(theTarget.id.substring(2,3));
+                var yPos = parseInt(theTarget.id.substring(3,4));
+                b.arr[xPos][yPos] = b.player;           
+            
+                // player won game?
+                var w = b.getWinner();
+                if(  w != "none" ) { 
+                    outputLog.print("GAME OVER, "+w+" won!");
+                    gameOver = true;
+                    TTTController.hilite();
+                } else { // game not over yet
+               
+                    //get next AI move
+                    //outputLog.print("Searching for moves for "+b.ai);
+                    var moves = b.getAvailableMoves(b.ai); // array of Board()                    
+                    var bestScore = -1000;
+                    var score;
+                    var bestMoves; // 2dim array of move[]
+                    var iBestMove = 0;
+                    
+                    // find best avail. move
+                    for( var mm in moves ) {
+                        score = MinMax.getMoveScore(moves[mm], 0, -10, 10, "O");
+                        //outputLog.print('move found, score: '+score);
+                        if( score > bestScore ) {
+                            bestMoves = [];
+                            iBestMove = 0;
+                            bestMoves[iBestMove++] = moves[mm].arr;
+                            bestScore = score;
+                        } else if ( score == bestScore ) { // add to list of best moves
+                            bestMoves[iBestMove++] = moves[mm].arr;
+                        }
+                    }
+                    
+                    if( bestMoves && bestMoves.length > 0 ) {
+                        // choose random move
+                        
+                        var ranMove = Math.floor(Math.random()*bestMoves.length);                  
+                        //outputLog.print('ranMove = ' + ranMove + ', bestMoves.length='+ bestMoves.length );
+                        
+                        b.arr = bestMoves[ranMove]; // set current board
+                        //b.arr = bestMoves[0]; // set current board
+                        if( !b.arr ) {
+                            outputLog.print('ERROR: arr = null');
+                        }
+                        
+                        if (bestScore == 1){
+                            outputLog.print('AI will WIN, score: '+bestScore);
+                        } else if( bestScore != 1 ) {
+                            outputLog.print('Found best move, score is '+bestScore);
+                        }                                                
+                    } else { // Error
+                        outputLog.print('ERROR: no moves for ai');
+                    }
+
+                    // game over ?
+                    w = b.getWinner();
+                    if(  w != "none" || moves.length == 0 ) { 
+                        outputLog.print("GAME OVER, "+w+" won!");
+                        gameOver = true; 
+                        TTTController.hilite();
+                    }
+                }
+            
+                // update board
+                TTTController.printBoard(b.arr);
+            }; // main function when user clicks on table
+        
+        
+            //####################################################################
+            //                      EVENT LISTENERS
+            //####################################################################
+        
+            
+            // click event to TD elements
+            var tdElem = null;
+            for( var y=0; y<3; y++ ) {
+                for( var x=0; x<3; x++ ) {
+                    tdElem = document.getElementById('td'+x+''+y);
+                    if (tdElem.addEventListener) {  
+                        tdElem.addEventListener('click', clickFunction, false);
+                    } else {
+                        tdElem.attachEvent('onclick', clickFunction);  
+                    }
+                }
+            }                                    
+
+            // clear button
+            aClear = document.getElementById('clearBoard');
+            if (aClear.addEventListener) {
+                aClear.addEventListener('click', function() {TTTController.initalize(); }, false);
+            } else {
+                aClear.attachEvent('onclick', function() {TTTController.initalize(); } );  
+            }   
+    
+            // AI thinking depth TEXT input
+            function changeAiDepth() {
+                MinMax.maxDepth = parseInt(document.getElementById('txtDepth').value);
+                outputLog.print("AI depth changed.");
+            }
+            txtDepth = document.getElementById('txtDepth');
+            if (txtDepth.addEventListener) {  
+                txtDepth.addEventListener('change', changeAiDepth, false);
+            } else {
+                txtDepth.attachEvent('oncchange', changeAiDepth);  
+            }                                   
+        </script>
+    </body>
+</html>
